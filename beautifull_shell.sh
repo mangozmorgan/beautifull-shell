@@ -413,10 +413,10 @@ aide() {
     echo -e "  ${BLUE}Système :${NC} ll, ports, myip, cpu"
     echo -e "  ${ORANGE}Tips :${NC} "
     echo -e "  ${DIM}Pour modifier/ajouter des alias, rendez-vous dans le fichier .bashrc${NC} "
-    echo -e "  ${DIM}Vous pouvez choisir votre thème oh-my-posh & Kitty parmis le large choix disponible sur leurs sites${NC} "
+    echo -e "  ${DIM}Explorez et choisissez un thème sur les sites d'Oh-My-Posh et Kitty.${NC} "
     echo -e "  ${DIM}Le ctrl+c & ctrl+v sont actifs${NC} "
     echo -e "  ${DIM}Ctrl+Shift+Enter Splitter le terminal${NC} "
-    echo -e "  ${DIM}Ctrl+Shift+\ Passer en split vertical${NC} "
+    echo -e "  ${DIM}Ctrl+Shift+/ Passer en split vertical${NC} "
 
 
 
