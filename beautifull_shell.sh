@@ -466,6 +466,7 @@ UPTIME_INFO=$(uptime -p 2>/dev/null | sed 's/up //' || echo "Indisponible")
 SHELL_INFO=$(basename $SHELL)
 
 echo -e "  ${CYAN}👤${NC} ${WHITE}Utilisateur   ${GRAY}→${NC}  ${YELLOW}${USER_INFO}${NC}"
+echo -e "${CYAN}🚀${NC} ${WHITE}Ready to code   ${GRAY}→${NC}  Tapez '${YELLOW}aide${NC}' pour plus de commandes"
 
 # Git info si dans un repo
 if git rev-parse --git-dir > /dev/null 2>&1; then
