@@ -151,8 +151,23 @@ install_oh_my_posh() {
     fi
     
     if curl -s https://ohmyposh.dev/install.sh | bash -s; then
+        # Ajouter au PATH dans .bashrc de façon permanente
+        if ! grep -q "oh-my-posh" "$HOME/.bashrc" 2>/dev/null; then
+            echo '' >> "$HOME/.bashrc"
+            echo '# Oh My Posh PATH' >> "$HOME/.bashrc"
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
+        fi
+        
+        # Exporter pour cette session
         export PATH="$HOME/.local/bin:$PATH"
-        print_success "Oh My Posh installé"
+        
+        # Vérifier l'installation
+        if "$HOME/.local/bin/oh-my-posh" --version >/dev/null 2>&1; then
+            print_success "Oh My Posh installé et configuré"
+        else
+            print_error "Oh My Posh installé mais non fonctionnel"
+            return 1
+        fi
     else
         print_error "Échec installation Oh My Posh"
         return 1
@@ -337,6 +352,9 @@ QUOTES=(
 RANDOM_QUOTE=${QUOTES[$RANDOM % ${#QUOTES[@]}]}
 echo -e "  ${DIM}${GRAY}💭 ${RANDOM_QUOTE}${NC}"
 echo ""
+
+# Oh My Posh PATH (ajouté automatiquement par le script d'installation)
+export PATH="$HOME/.local/bin:$PATH"
 
 # Oh My Posh
 if command -v oh-my-posh &> /dev/null; then
