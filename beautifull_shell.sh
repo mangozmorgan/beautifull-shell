@@ -356,19 +356,10 @@ echo ""
 # Oh My Posh PATH (ajouté automatiquement par le script d'installation)
 export PATH="$HOME/.local/bin:$PATH"
 
-# Configuration du thème Oh My Posh par défaut (chemin relatif)
-export POSH_THEME="agnoster.omp.json"
-
 # Oh My Posh
 if command -v oh-my-posh &> /dev/null; then
-    # Essayer d'abord avec le chemin relatif (plus simple)
-    if oh-my-posh init bash --config "$POSH_THEME" >/dev/null 2>&1; then
-        eval "$(oh-my-posh init bash --config '$POSH_THEME')"
-    # Puis essayer avec le chemin complet vers aliens
-    elif [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
-        export POSH_THEME="$HOME/.cache/oh-my-posh/themes/aliens.omp.json"
-        eval "$(oh-my-posh init bash --config '$POSH_THEME')"
-    # Sinon utiliser le thème par défaut
+    if [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
+        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/aliens.omp.json')"
     else
         eval "$(oh-my-posh init bash)"
     fi
@@ -406,8 +397,8 @@ NC='\033[0m'
 BOLD='\033[1m'
 DIM='\033[2m'
 
-# Démarrage custom (uniquement pour Kitty)
-if [[ $- == *i* ]] && [[ -z "$STARTUP_DONE" ]] && [[ "$TERM" == "xterm-kitty" ]]; then
+# Démarrage custom
+if [[ $- == *i* ]] && [[ -z "$STARTUP_DONE" ]]; then
     export STARTUP_DONE=1
     ~/.config/kitty/startup.sh
 fi
@@ -439,14 +430,8 @@ alias util='cd ~/Documents/Utilitaires'
 
 # Oh My Posh
 if command -v oh-my-posh &> /dev/null; then
-    # Essayer d'abord avec le chemin relatif (plus simple)
-    if oh-my-posh init bash --config "$POSH_THEME" >/dev/null 2>&1; then
-        eval "$(oh-my-posh init bash --config '$POSH_THEME')"
-    # Puis essayer avec le chemin complet vers aliens
-    elif [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
-        export POSH_THEME="$HOME/.cache/oh-my-posh/themes/aliens.omp.json"
-        eval "$(oh-my-posh init bash --config '$POSH_THEME')"
-    # Sinon utiliser le thème par défaut
+    if [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
+        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/aliens.omp.json')"
     else
         eval "$(oh-my-posh init bash)"
     fi
@@ -505,13 +490,6 @@ main() {
     echo -e "  ${CYAN}1.${NC} Redémarrez votre session"
     echo -e "  ${CYAN}2.${NC} Ou lancez : ${BOLD}source ~/.bashrc${NC}"
     echo -e "  ${CYAN}3.${NC} Lancez Kitty : ${BOLD}kitty${NC}"
-    echo -e "  ${CYAN}4.${NC} Pour changer le thème : ${BOLD}export POSH_THEME=\"thème.omp.json\"${NC}"
-    echo ""
-    print_info "THÈMES DISPONIBLES :"
-    echo -e "  ${DIM}• aliens.omp.json (par défaut)${NC}"
-    echo -e "  ${DIM}• agnoster.omp.json${NC}"  
-    echo -e "  ${DIM}• powerlevel10k_rainbow.omp.json${NC}"
-    echo -e "  ${DIM}• Voir tous : ls ~/.cache/oh-my-posh/themes/${NC}"
     echo ""
     
     log "Installation terminée"
