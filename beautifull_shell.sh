@@ -343,29 +343,23 @@ configure_kitty() {
     
     # Créer le fichier de configuration kitty.conf avec le thème Catppuccin
     cat > "$KITTY_CONFIG_DIR/kitty.conf" << 'EOF'
-# THEME KITTY - Catppuccin Mocha (Configuration corrigée)
+# THEME KITTY - Catppuccin Mocha
 # vim:ft=kitty
 
-# Police - Configuration corrigée pour éviter les erreurs
+# Police
 font_family      JetBrainsMonoNerdFont-Regular
 bold_font        JetBrainsMonoNerdFont-Bold
 italic_font      JetBrainsMonoNerdFont-Italic
 bold_italic_font JetBrainsMonoNerdFont-BoldItalic
 font_size        11.0
 
-# Fallback si Nerd Font non trouvée
-# font_family      monospace
-
 # Apparence
 background_opacity         0.95
 confirm_os_window_close    0
 
 # Couleurs Catppuccin Mocha
-# text
 foreground           #cdd6f4
-# base
 background           #1e1e2e
-# selection
 selection_foreground #1e1e2e
 selection_background #f5e0dc
 
@@ -488,6 +482,7 @@ SHELL_INFO=$(basename $SHELL)
 
 echo -e "  ${CYAN}👤${NC} ${WHITE}Utilisateur   ${GRAY}→${NC}  ${YELLOW}${USER_INFO}${NC}"
 echo -e "  ${CYAN}🚀${NC} ${WHITE}Ready to code   ${GRAY}→${NC}  Tapez '${YELLOW}aide${NC}' pour plus de commandes"
+
 # Git info si dans un repo
 if git rev-parse --git-dir > /dev/null 2>&1; then
     BRANCH=$(git branch --show-current)
@@ -511,13 +506,11 @@ echo ""
 
 # Initialiser Oh My Posh si disponible
 if command -v oh-my-posh &> /dev/null; then
-    # Utiliser un thème simple et robuste
-    if [ -f "$HOME/.cache/oh-my-posh/themes/powerlevel10k_rainbow.omp.json" ]; then
-        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/powerlevel10k_rainbow.omp.json')"
-    elif [ -f "$HOME/.cache/oh-my-posh/themes/jandedobbeleer.omp.json" ]; then
-        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/jandedobbeleer.omp.json')"
+    # Utiliser le thème aliens
+    if [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
+        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/aliens.omp.json')"
     else
-        # Utiliser le thème par défaut intégré (plus stable)
+        # Fallback vers le thème par défaut
         eval "$(oh-my-posh init bash)"
     fi
 fi
