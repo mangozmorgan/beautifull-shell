@@ -356,11 +356,18 @@ echo ""
 # Oh My Posh PATH (ajouté automatiquement par le script d'installation)
 export PATH="$HOME/.local/bin:$PATH"
 
+# Configuration du thème Oh My Posh par défaut
+export POSH_THEME="$HOME/.cache/oh-my-posh/themes/aliens.omp.json"
+
 # Oh My Posh
 if command -v oh-my-posh &> /dev/null; then
-    if [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
-        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/aliens.omp.json')"
+    if [ -f "$POSH_THEME" ]; then
+        eval "$(oh-my-posh init bash --config '$POSH_THEME')"
+    elif [ -f "$HOME/.cache/oh-my-posh/themes/agnoster.omp.json" ]; then
+        export POSH_THEME="$HOME/.cache/oh-my-posh/themes/agnoster.omp.json"
+        eval "$(oh-my-posh init bash --config '$POSH_THEME')"
     else
+        # Utiliser le thème par défaut intégré
         eval "$(oh-my-posh init bash)"
     fi
 fi
@@ -430,8 +437,11 @@ alias util='cd ~/Documents/Utilitaires'
 
 # Oh My Posh
 if command -v oh-my-posh &> /dev/null; then
-    if [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
-        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/aliens.omp.json')"
+    if [ -f "$POSH_THEME" ]; then
+        eval "$(oh-my-posh init bash --config '$POSH_THEME')"
+    elif [ -f "$HOME/.cache/oh-my-posh/themes/agnoster.omp.json" ]; then
+        export POSH_THEME="$HOME/.cache/oh-my-posh/themes/agnoster.omp.json"
+        eval "$(oh-my-posh init bash --config '$POSH_THEME')"
     else
         eval "$(oh-my-posh init bash)"
     fi
@@ -490,6 +500,13 @@ main() {
     echo -e "  ${CYAN}1.${NC} Redémarrez votre session"
     echo -e "  ${CYAN}2.${NC} Ou lancez : ${BOLD}source ~/.bashrc${NC}"
     echo -e "  ${CYAN}3.${NC} Lancez Kitty : ${BOLD}kitty${NC}"
+    echo -e "  ${CYAN}4.${NC} Pour changer le thème : ${BOLD}export POSH_THEME=\"thème.omp.json\"${NC}"
+    echo ""
+    print_info "THÈMES DISPONIBLES :"
+    echo -e "  ${DIM}• aliens.omp.json (par défaut)${NC}"
+    echo -e "  ${DIM}• agnoster.omp.json${NC}"  
+    echo -e "  ${DIM}• powerlevel10k_rainbow.omp.json${NC}"
+    echo -e "  ${DIM}• Voir tous : ls ~/.cache/oh-my-posh/themes/${NC}"
     echo ""
     
     log "Installation terminée"
