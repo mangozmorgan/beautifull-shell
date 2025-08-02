@@ -1,4 +1,61 @@
-#!/bin/bash
+
+download_themes() {
+    print_step "Téléchargement des thèmes Oh My Posh..."
+    
+    # Créer le dossier themes
+    mkdir -p "$OMP_THEMES_DIR"
+    
+    # Télécharger les thèmes depuis le repo officiel
+    local themes_url="https://github.com/JanDeDobbeleer/oh-my-posh/archive/refs/heads/main.zip"
+    local temp_dir=$(mktemp -d)
+    
+    print_info "Téléchargement des thèmes officiels..."
+    if wget -q --show-progress "$themes_url" -O "$temp_dir/themes.zip"; then
+        unzip -q "$temp_dir/themes.zip" -d "$temp_dir"
+        
+        # Copier uniquement les fichiers de thèmes
+        if [ -d "$temp_dir/oh-my-posh-main/themes" ]; then
+            cp "$temp_dir/oh-my-posh-main/themes"/*.omp.json "$OMP_THEMES_DIR/" 2>/dev/null
+            
+            # Vérifier qu'au moins quelques thèmes ont été copiés
+            local theme_count=$(ls "$OMP_THEMES_DIR"/*.omp.json 2>/dev/null | wc -l)
+            if [ "$theme_count" -gt 0 ]; then
+                print_success "Thèmes téléchargés ($theme_count thèmes) dans $OMP_THEMES_DIR"
+            else
+                print_warning "Aucun thème trouvé, création d'un thème par défaut"
+                create_default_theme
+            fi
+        else
+            print_warning "Structure de thèmes non trouvée, création d'un thème par défaut"
+            create_default_theme
+        fi
+        
+        rm -rf "$temp_dir"
+    else
+        print_warning "Échec du téléchargement des thèmes, création d'un thème par défaut"
+        create_default_theme
+    fi
+}
+
+create_default_theme() {
+    # Créer un thème simple qui fonctionne toujours
+    cat > "$OMP_THEMES_DIR/default.omp.json" << 'EOF'
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "version": 2,
+  "final_space": true,
+  "blocks": [
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "segments": [
+        {
+          "type": "session",
+          "style": "diamond",
+          "leading_diamond": "",
+          "trailing_diamond": "",
+          "template": " {{ .UserName }}@{{ .HostName }} ",
+          "background": "#c#!/bin/bash
 
 # =============================================================================
 # TERMINAL DEV SETUP - Installation complète Kitty + Oh My Posh (LINUX)
@@ -287,13 +344,8 @@ configure_kitty() {
     
     # Créer le fichier de configuration kitty.conf avec le thème Catppuccin
     cat > "$KITTY_CONFIG_DIR/kitty.conf" << 'EOF'
-# THEME KITTY - Catppuccin Mocha
+# THEME KITTY - Catppuccin Mocha (Configuration corrigée)
 # vim:ft=kitty
-## name:     Catppuccin Kitty Diff Mocha
-## author:   Catppuccin Org
-## license:  MIT
-## upstream: https://github.com/catppuccin/kitty/blob/main/themes/diff-mocha.conf
-## blurb:    Soothing pastel theme for the high-spirited!
 
 # Police - Configuration corrigée pour éviter les erreurs
 font_family      JetBrainsMonoNerdFont-Regular
@@ -307,46 +359,16 @@ font_size        11.0
 
 # Apparence
 background_opacity         0.95
-window_padding_width       15
-hide_window_decorations    no
 confirm_os_window_close    0
 
+# Couleurs Catppuccin Mocha
 # text
 foreground           #cdd6f4
 # base
 background           #1e1e2e
-# subtext0
-title_fg             #a6adc8
-# mantle
-title_bg             #181825
-margin_bg            #181825
-# subtext1
-margin_fg            #a6adc8
-# mantle
-filler_bg            #181825
-# 30% red, 70% base
-removed_bg           #5e3f53
-# 50% red, 50% base
-highlight_removed_bg #89556b
-# 40% red, 60% base
-removed_margin_bg    #734a5f
-# 30% green, 70% base
-added_bg             #475a51
-# 50% green, 50% base
-highlight_added_bg   #628168
-# 40% green, 60% base
-added_margin_bg      #734a5f
-# mantle
-hunk_margin_bg       #181825
-hunk_bg              #181825
-# 40% yellow, 60% base
-search_bg            #766c62
-# text
-search_fg            #cdd6f4
-# 30% sky, 70% base
-select_bg            #3e5767
-# text
-select_fg            #cdd6f4
+# selection
+selection_foreground #1e1e2e
+selection_background #f5e0dc
 
 # Couleurs normales
 color0  #45475a
@@ -491,12 +513,13 @@ echo ""
 
 # Initialiser Oh My Posh si disponible
 if command -v oh-my-posh &> /dev/null; then
-    # Utiliser le thème agnoster ou un thème par défaut
-    if [ -f "$HOME/.cache/oh-my-posh/themes/agnoster.omp.json" ]; then
-        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/agnoster.omp.json')"
-    elif [ -f "$HOME/.cache/oh-my-posh/themes/powerlevel10k_rainbow.omp.json" ]; then
+    # Utiliser un thème simple et robuste
+    if [ -f "$HOME/.cache/oh-my-posh/themes/powerlevel10k_rainbow.omp.json" ]; then
         eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/powerlevel10k_rainbow.omp.json')"
+    elif [ -f "$HOME/.cache/oh-my-posh/themes/jandedobbeleer.omp.json" ]; then
+        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/jandedobbeleer.omp.json')"
     else
+        # Utiliser le thème par défaut intégré (plus stable)
         eval "$(oh-my-posh init bash)"
     fi
 fi
