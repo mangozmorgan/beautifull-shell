@@ -138,20 +138,31 @@ install_fonts() {
     local font_url="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
     
     print_info "Téléchargement de JetBrains Mono Nerd Font..."
-    if wget -q "$font_url" -O "$temp_dir/JetBrainsMono.zip"; then
+    if wget -q --show-progress "$font_url" -O "$temp_dir/JetBrainsMono.zip"; then
         print_info "Extraction des polices..."
         unzip -q "$temp_dir/JetBrainsMono.zip" -d "$temp_dir/JetBrainsMono"
         
-        # Copier les fichiers TTF
-        find "$temp_dir/JetBrainsMono" -name "*.ttf" -exec cp {} "$font_dir/" \;
+        # Copier uniquement les fichiers TTF (pas les OTF pour éviter les conflits)
+        find "$temp_dir/JetBrainsMono" -name "JetBrainsMonoNerdFont-*.ttf" -exec cp {} "$font_dir/" \;
         
-        # Mettre à jour le cache des polices
-        fc-cache -fv "$font_dir" > /dev/null 2>&1
+        # Vérifier qu'au moins une police a été copiée
+        if ls "$font_dir"/JetBrainsMonoNerdFont-*.ttf 1> /dev/null 2>&1; then
+            print_info "Mise à jour du cache des polices..."
+            fc-cache -fv "$font_dir" >/dev/null 2>&1
+            
+            # Vérifier que la police est bien installée
+            if fc-list | grep -q "JetBrainsMono Nerd Font"; then
+                print_success "Polices Nerd Fonts installées et détectées"
+            else
+                print_warning "Police installée mais non détectée par fontconfig"
+            fi
+        else
+            print_error "Aucune police JetBrains Mono trouvée dans l'archive"
+            return 1
+        fi
         
         # Nettoyage
         rm -rf "$temp_dir"
-        
-        print_success "Polices Nerd Fonts installées"
     else
         print_error "Échec du téléchargement des polices"
         return 1
@@ -284,12 +295,15 @@ configure_kitty() {
 ## upstream: https://github.com/catppuccin/kitty/blob/main/themes/diff-mocha.conf
 ## blurb:    Soothing pastel theme for the high-spirited!
 
-# Police
-font_family      JetBrainsMono Nerd Font
+# Police - Configuration corrigée pour éviter les erreurs
+font_family      JetBrainsMonoNerdFont-Regular
+bold_font        JetBrainsMonoNerdFont-Bold
+italic_font      JetBrainsMonoNerdFont-Italic
+bold_italic_font JetBrainsMonoNerdFont-BoldItalic
 font_size        11.0
-bold_font        auto
-italic_font      auto
-bold_italic_font auto
+
+# Fallback si Nerd Font non trouvée
+# font_family      monospace
 
 # Apparence
 background_opacity         0.95
@@ -610,6 +624,31 @@ EOF
     # Mettre à jour la base de données des applications
     update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
     
+    # Définir Kitty comme terminal par défaut via update-alternatives (nécessite sudo)
+    print_info "Configuration du terminal par défaut système..."
+    if command -v update-alternatives >/dev/null 2>&1; then
+        # Vérifier si kitty est dans le PATH
+        KITTY_PATH=$(which kitty 2>/dev/null || echo "/usr/bin/kitty")
+        
+        if [ -x "$KITTY_PATH" ]; then
+            # Ajouter kitty aux alternatives et le définir par défaut
+            sudo update-alternatives --install /usr/bin/x-terminal-emulator x-terminal-emulator "$KITTY_PATH" 100
+            sudo update-alternatives --set x-terminal-emulator "$KITTY_PATH"
+            print_success "Kitty défini comme terminal par défaut système"
+        else
+            print_warning "Impossible de trouver l'exécutable kitty"
+        fi
+    else
+        print_warning "update-alternatives non disponible sur cette distribution"
+    fi
+    
+    # Configuration GNOME si disponible
+    if command -v gsettings >/dev/null 2>&1; then
+        print_info "Configuration du terminal par défaut pour GNOME..."
+        gsettings set org.gnome.desktop.default-applications.terminal exec 'kitty' 2>/dev/null || true
+        gsettings set org.gnome.desktop.default-applications.terminal exec-arg '' 2>/dev/null || true
+    fi
+    
     print_success "Kitty configuré dans les applications"
 }
 
@@ -695,12 +734,39 @@ main() {
     print_header
     print_success "Installation terminée avec succès !"
     echo ""
+    
+    # Vérifications post-installation
+    print_info "VÉRIFICATIONS POST-INSTALLATION :"
+    
+    # Vérifier Oh My Posh
+    if command -v oh-my-posh >/dev/null 2>&1; then
+        echo -e "  ${GREEN}✓${NC} Oh My Posh installé"
+    else
+        echo -e "  ${RED}✗${NC} Oh My Posh non trouvé"
+    fi
+    
+    # Vérifier Kitty
+    if command -v kitty >/dev/null 2>&1; then
+        echo -e "  ${GREEN}✓${NC} Kitty installé"
+    else
+        echo -e "  ${RED}✗${NC} Kitty non trouvé"
+    fi
+    
+    # Vérifier les polices
+    if fc-list | grep -q "JetBrainsMono Nerd Font"; then
+        echo -e "  ${GREEN}✓${NC} Polices Nerd Font détectées"
+    else
+        echo -e "  ${YELLOW}⚠${NC} Polices Nerd Font non détectées (redémarrage peut être nécessaire)"
+    fi
+    
+    echo ""
     print_info "PROCHAINES ÉTAPES :"
-    echo -e "  ${CYAN}1.${NC} Redémarrez votre terminal ou lancez : ${BOLD}source ~/.bashrc${NC}"
-    echo -e "  ${CYAN}2.${NC} Configurez le raccourci Super+T manuellement (voir instructions)"
-    echo -e "  ${CYAN}3.${NC} Lancez Kitty depuis le lanceur d'applications ou tapez : ${BOLD}kitty${NC}"
-    echo -e "  ${CYAN}4.${NC} Votre bannière personnalisée s'affichera automatiquement"
-    echo -e "  ${CYAN}5.${NC} Utilisez ${BOLD}Ctrl+C${NC} et ${BOLD}Ctrl+V${NC} pour copier/coller"
+    echo -e "  ${CYAN}1.${NC} ${BOLD}REDÉMARREZ votre session${NC} pour appliquer toutes les configurations"
+    echo -e "  ${CYAN}2.${NC} Ou lancez : ${BOLD}source ~/.bashrc && fc-cache -fv${NC}"
+    echo -e "  ${CYAN}3.${NC} Configurez le raccourci Super+T manuellement (voir instructions)"
+    echo -e "  ${CYAN}4.${NC} Lancez Kitty depuis le lanceur d'applications ou tapez : ${BOLD}kitty${NC}"
+    echo -e "  ${CYAN}5.${NC} Votre bannière personnalisée s'affichera automatiquement"
+    echo -e "  ${CYAN}6.${NC} Utilisez ${BOLD}Ctrl+C${NC} et ${BOLD}Ctrl+V${NC} pour copier/coller"
     echo ""
     print_info "Fichiers créés :"
     echo -e "  ${DIM}• Configuration : ~/.config/kitty/kitty.conf${NC}"
