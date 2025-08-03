@@ -442,12 +442,26 @@ echo ""
 
 # Citation aléatoire
 QUOTES=(
-    "Résoudre d'abord le problème. Puis, écrire le code."
-    "Le code est de la poésie écrite en logique."
-    "Un code propre semble avoir été écrit par quelqu'un qui s'en soucie."
-    "La programmation, c'est découvrir ce qu'on peut faire."
-    "Debugger, c'est être détective dans un film policier où vous êtes aussi le meurtrier."
-    "Le meilleur code est celui qu'on n'a pas besoin d'écrire."
+    "Les programmes doivent être écrits pour que les gens les lisent, et accessoirement pour que les machines les exécutent. - Harold Abelson"
+    "Les mots ne coûtent rien. Montrez-moi le code. - Linus Torvalds"
+    "Le code est comme l'humour. Quand on doit l'expliquer, c'est qu'il est mauvais. - Cory House"
+    "D'abord, résolvez le problème. Ensuite, écrivez le code. - John Johnson"
+    "Le meilleur message d'erreur est celui qui n'apparaît jamais. - Thomas Fuchs"
+    "La simplicité est la sophistication suprême. - Leonardo da Vinci"
+    "N'importe quel idiot peut écrire du code qu'un ordinateur comprend. Les bons programmeurs écrivent du code que les humains comprennent. - Martin Fowler"
+    "L'expérience est le nom que chacun donne à ses erreurs. - Oscar Wilde"
+    "La seule façon d'apprendre un nouveau langage de programmation est d'écrire des programmes avec. - Dennis Ritchie"
+    "Déboguer est deux fois plus difficile que d'écrire le code au départ. - Brian Kernighan"
+    "Faites que ça marche, faites que ce soit correct, faites que ce soit rapide. - Kent Beck"
+    "Le code ne mentit jamais, les commentaires parfois. - Ron Jeffries"
+    "La programmation ne consiste pas à taper, mais à réfléchir. - Rich Hickey"
+    "La propriété la plus importante d'un programme est de réaliser l'intention de son utilisateur. - C.A.R. Hoare"
+    "Ce n'est pas un bug, c'est une fonctionnalité non documentée. - Anonyme"
+    "Avant qu'un logiciel puisse être réutilisable, il doit d'abord être utilisable. - Ralph Johnson"
+    "L'ordinateur est né pour résoudre des problèmes qui n'existaient pas avant. - Bill Gates"
+    "Marcher sur l'eau et développer un logiciel à partir d'une spécification, c'est facile si les deux sont gelés. - Edward V. Berard"
+    "Un bon code est son propre meilleur documentation. - Steve McConnell"
+    "Il y a deux façons de concevoir un logiciel : le rendre si simple qu'il n'y a évidemment pas de défauts, ou le rendre si compliqué qu'il n'y a pas de défauts évidents. - C.A.R. Hoare"
 )
 
 RANDOM_QUOTE=${QUOTES[$RANDOM % ${#QUOTES[@]}]}
@@ -504,7 +518,7 @@ aide() {
     echo -e "  ${GREEN}Navigation :${NC} proj, web, util, home, .., ..."
     echo -e "  ${PURPLE}Git :${NC} gs (status), ga (add), gc (commit), gp (push), gl (log), gd (diff)"
     echo -e "  ${BLUE}Système :${NC} ll, la, ports, myip, cpu"
-    echo -e "  ${ORANGE}Oh My Posh :${NC} omp-theme [nom], omp-reset, omp-list"
+    echo -e "  ${ORANGE}Oh My Posh :${NC} omp-theme [nom], omp-save [nom], omp-reset, omp-list"
     echo ""
     echo -e "${WHITE}${BOLD}💡 TIPS & ASTUCES${NC}"
     echo -e "${GRAY}▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔${NC}"
@@ -548,12 +562,58 @@ omp-theme() {
     if [ -f "$theme_file" ]; then
         eval "$(oh-my-posh init bash --config "$theme_file")"
         echo -e "${GREEN}✓ Thème '$1' appliqué pour cette session${NC}"
-        echo -e "${DIM}Pour le rendre permanent, ajoutez la ligne dans ~/.bashrc${NC}"
+        echo -e "${DIM}Pour le sauvegarder : omp-save $1${NC}"
     else
         echo -e "${RED}✗ Thème '$1' introuvable${NC}"
         echo -e "${CYAN}Thèmes disponibles :${NC}"
         omp-list
     fi
+}
+
+# Fonction pour sauvegarder un thème de façon permanente
+omp-save() {
+    local theme_name="$1"
+    
+    if [ -z "$theme_name" ]; then
+        echo -e "${YELLOW}Usage: omp-save [nom_du_thème]${NC}"
+        return 1
+    fi
+    
+    local theme_file="$HOME/.cache/oh-my-posh/themes/$theme_name.omp.json"
+    
+    if [ ! -f "$theme_file" ]; then
+        echo -e "${RED}✗ Thème '$theme_name' introuvable${NC}"
+        return 1
+    fi
+    
+    # Créer une sauvegarde du .bashrc
+    cp ~/.bashrc ~/.bashrc.backup.theme.$(date +%Y%m%d_%H%M%S)
+    
+    # Supprimer l'ancienne configuration Oh My Posh
+    sed -i '/# Chercher un thème par ordre de préférence/,/^fi$/d' ~/.bashrc
+    
+    # Ajouter la nouvelle configuration avec le thème sauvegardé en premier
+    cat >> ~/.bashrc << EOF
+
+        # Chercher un thème par ordre de préférence
+        if [ -f "\$HOME/.cache/oh-my-posh/themes/$theme_name.omp.json" ]; then
+            eval "\$(oh-my-posh init bash --config "\$HOME/.cache/oh-my-posh/themes/$theme_name.omp.json")"
+        elif [ -f "\$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
+            eval "\$(oh-my-posh init bash --config "\$HOME/.cache/oh-my-posh/themes/aliens.omp.json")"
+        elif [ -f "\$HOME/.cache/oh-my-posh/themes/atomic.omp.json" ]; then
+            eval "\$(oh-my-posh init bash --config "\$HOME/.cache/oh-my-posh/themes/atomic.omp.json")"
+        else
+            # Utiliser le thème par défaut
+            eval "\$(oh-my-posh init bash)"
+        fi
+    fi
+fi
+
+EOF
+
+    echo -e "${GREEN}✓ Thème '$theme_name' sauvegardé comme thème par défaut${NC}"
+    echo -e "${CYAN}Le thème sera appliqué dans les nouvelles sessions de terminal${NC}"
+    echo -e "${DIM}Sauvegarde créée : ~/.bashrc.backup.theme.$(date +%Y%m%d_%H%M%S)${NC}"
 }
 
 # Lister les thèmes disponibles
@@ -796,6 +856,7 @@ main() {
         echo -e "  ${YELLOW}4.${NC} ${BOLD}Explorez les thèmes :${NC}"
         echo -e "     ${DIM}omp-list${NC}"
         echo -e "     ${DIM}omp-theme atomic${NC}"
+        echo -e "     ${DIM}omp-save atomic${NC}"
         echo ""
         echo -e "  ${YELLOW}5.${NC} ${BOLD}Aide et astuces :${NC}"
         echo -e "     ${DIM}aide${NC}"
@@ -803,6 +864,7 @@ main() {
         echo -e "${WHITE}${BOLD}COMMANDES UTILES :${NC}"
         echo -e "${CYAN}▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔${NC}"
         echo -e "  • ${GREEN}omp-theme [nom]${NC}     Changer de thème"
+        echo -e "  • ${GREEN}omp-save [nom]${NC}      Sauvegarder un thème"
         echo -e "  • ${GREEN}omp-reset${NC}           Réinitialiser Oh My Posh"
         echo -e "  • ${GREEN}omp-list${NC}            Lister tous les thèmes"
         echo -e "  • ${GREEN}gs${NC}                  Git status rapide"
