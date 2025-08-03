@@ -2,6 +2,7 @@
 
 # =============================================================================
 # TERMINAL DEV SETUP - Installation complète Kitty + Oh My Posh (LINUX)
+# Version corrigée pour Pop!_OS
 # =============================================================================
 
 # Couleurs
@@ -21,6 +22,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="$SCRIPT_DIR/setup.log"
 KITTY_CONFIG_DIR="$HOME/.config/kitty"
 OMP_THEMES_DIR="$HOME/.cache/oh-my-posh/themes"
+OMP_BINARY="$HOME/.local/bin/oh-my-posh"
 
 # =============================================================================
 # FONCTIONS D'AFFICHAGE
@@ -98,7 +100,7 @@ check_dependencies() {
         print_warning "Installation des dépendances manquantes : ${missing[*]}"
         
         case $DISTRO in
-            ubuntu|debian)
+            ubuntu|debian|pop)
                 sudo apt update && sudo apt install -y curl wget unzip git jq fontconfig
                 ;;
             fedora)
@@ -145,31 +147,59 @@ install_fonts() {
 install_oh_my_posh() {
     print_step "Installation d'Oh My Posh..."
     
-    if command -v oh-my-posh &> /dev/null; then
-        print_warning "Oh My Posh déjà installé"
+    # Nettoyer installation précédente si défectueuse
+    if [ -f "$OMP_BINARY" ] && ! "$OMP_BINARY" --version >/dev/null 2>&1; then
+        print_warning "Suppression installation Oh My Posh défectueuse"
+        rm -f "$OMP_BINARY"
+    fi
+    
+    if command -v oh-my-posh &> /dev/null && oh-my-posh --version >/dev/null 2>&1; then
+        print_warning "Oh My Posh déjà installé et fonctionnel"
         return 0
     fi
     
-    if curl -s https://ohmyposh.dev/install.sh | bash -s; then
-        # Ajouter au PATH dans .bashrc de façon permanente
-        if ! grep -q "oh-my-posh" "$HOME/.bashrc" 2>/dev/null; then
-            echo '' >> "$HOME/.bashrc"
-            echo '# Oh My Posh PATH' >> "$HOME/.bashrc"
-            echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
-        fi
+    # Méthode alternative plus fiable pour Pop!_OS
+    mkdir -p "$HOME/.local/bin"
+    
+    # Détecter l'architecture
+    ARCH=$(uname -m)
+    case $ARCH in
+        x86_64) OMP_ARCH="amd64" ;;
+        arm64|aarch64) OMP_ARCH="arm64" ;;
+        *) 
+            print_error "Architecture non supportée: $ARCH"
+            return 1
+            ;;
+    esac
+    
+    # Téléchargement direct du binaire
+    local omp_url="https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/posh-linux-${OMP_ARCH}"
+    
+    print_info "Téléchargement Oh My Posh pour architecture: $OMP_ARCH"
+    
+    if wget -q --show-progress "$omp_url" -O "$OMP_BINARY"; then
+        chmod +x "$OMP_BINARY"
         
-        # Exporter pour cette session
-        export PATH="$HOME/.local/bin:$PATH"
-        
-        # Vérifier l'installation
-        if "$HOME/.local/bin/oh-my-posh" --version >/dev/null 2>&1; then
-            print_success "Oh My Posh installé et configuré"
+        # Test du binaire
+        if "$OMP_BINARY" --version >/dev/null 2>&1; then
+            # Ajouter au PATH de façon permanente si nécessaire
+            if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$HOME/.bashrc" 2>/dev/null; then
+                echo '' >> "$HOME/.bashrc"
+                echo '# Oh My Posh PATH' >> "$HOME/.bashrc"
+                echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
+            fi
+            
+            # Exporter pour cette session
+            export PATH="$HOME/.local/bin:$PATH"
+            
+            print_success "Oh My Posh installé et vérifié"
         else
-            print_error "Oh My Posh installé mais non fonctionnel"
+            print_error "Oh My Posh téléchargé mais non fonctionnel"
+            rm -f "$OMP_BINARY"
             return 1
         fi
     else
-        print_error "Échec installation Oh My Posh"
+        print_error "Échec téléchargement Oh My Posh"
         return 1
     fi
 }
@@ -179,18 +209,21 @@ download_themes() {
     
     mkdir -p "$OMP_THEMES_DIR"
     
-    local themes_url="https://github.com/JanDeDobbeleer/oh-my-posh/archive/refs/heads/main.zip"
-    local temp_dir=$(mktemp -d)
+    # Télécharger quelques thèmes populaires directement
+    local themes=("aliens" "atomic" "blue-owl" "capr4n" "catppuccin" "craver" "dracula" "jandedobbeleer" "kushal" "lambda" "marcduiker" "paradox" "pure" "robbyrussell" "spaceship" "star" "stelbent" "tokyo")
     
-    if wget -q --show-progress "$themes_url" -O "$temp_dir/themes.zip"; then
-        unzip -q "$temp_dir/themes.zip" -d "$temp_dir"
-        if [ -d "$temp_dir/oh-my-posh-main/themes" ]; then
-            cp "$temp_dir/oh-my-posh-main/themes"/*.omp.json "$OMP_THEMES_DIR/" 2>/dev/null
-            print_success "Thèmes téléchargés"
+    for theme in "${themes[@]}"; do
+        local theme_url="https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json"
+        if wget -q "$theme_url" -O "$OMP_THEMES_DIR/${theme}.omp.json" 2>/dev/null; then
+            print_info "Thème $theme téléchargé"
         fi
-        rm -rf "$temp_dir"
+    done
+    
+    # Vérifier qu'au moins un thème a été téléchargé
+    if [ "$(ls -A $OMP_THEMES_DIR 2>/dev/null | wc -l)" -gt 0 ]; then
+        print_success "Thèmes téléchargés"
     else
-        print_warning "Échec téléchargement thèmes"
+        print_warning "Aucun thème téléchargé, utilisation du thème par défaut"
     fi
 }
 
@@ -203,7 +236,7 @@ install_kitty() {
     fi
     
     case $DISTRO in
-        ubuntu|debian)
+        ubuntu|debian|pop)
             sudo apt install -y kitty
             ;;
         fedora)
@@ -289,7 +322,7 @@ remember_window_size no
 shell_integration enabled
 EOF
 
-    # Script startup
+    # Script startup simplifié (sans Oh My Posh ici)
     cat > "$KITTY_CONFIG_DIR/startup.sh" << 'EOF'
 #!/bin/bash
 
@@ -352,18 +385,6 @@ QUOTES=(
 RANDOM_QUOTE=${QUOTES[$RANDOM % ${#QUOTES[@]}]}
 echo -e "  ${DIM}${GRAY}💭 ${RANDOM_QUOTE}${NC}"
 echo ""
-
-# Oh My Posh PATH (ajouté automatiquement par le script d'installation)
-export PATH="$HOME/.local/bin:$PATH"
-
-# Oh My Posh
-if command -v oh-my-posh &> /dev/null; then
-    if [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
-        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/aliens.omp.json')"
-    else
-        eval "$(oh-my-posh init bash)"
-    fi
-fi
 EOF
 
     chmod +x "$KITTY_CONFIG_DIR/startup.sh"
@@ -376,6 +397,9 @@ configure_bashrc() {
     if [ -f "$HOME/.bashrc" ]; then
         cp "$HOME/.bashrc" "$HOME/.bashrc.backup.$(date +%Y%m%d_%H%M%S)"
     fi
+    
+    # Supprimer les anciennes configurations si elles existent
+    sed -i '/# CONFIG PERSO - TERMINAL DEV SETUP/,$d' "$HOME/.bashrc" 2>/dev/null
     
     cat >> "$HOME/.bashrc" << 'EOF'
 
@@ -397,8 +421,8 @@ NC='\033[0m'
 BOLD='\033[1m'
 DIM='\033[2m'
 
-# Démarrage custom
-if [[ $- == *i* ]] && [[ -z "$STARTUP_DONE" ]]; then
+# Démarrage custom (uniquement en mode interactif)
+if [[ $- == *i* ]] && [[ -z "$STARTUP_DONE" ]] && [[ -f "$HOME/.config/kitty/startup.sh" ]]; then
     export STARTUP_DONE=1
     ~/.config/kitty/startup.sh
 fi
@@ -411,16 +435,27 @@ aide() {
     echo -e "  ${GREEN}Navigation :${NC} proj, web, util, home"
     echo -e "  ${PURPLE}Git :${NC} gs (status), ga (add), gc (commit), gp (push)"
     echo -e "  ${BLUE}Système :${NC} ll, ports, myip, cpu"
-    echo -e "  ${ORANGE}Tips :${NC} "
-    echo -e "  ${DIM}Pour modifier/ajouter des alias, rendez-vous dans le fichier .bashrc${NC} "
-    echo -e "  ${DIM}Explorez et choisissez un thème sur les sites d'Oh-My-Posh et Kitty.${NC} "
-    echo -e "  ${DIM}Le ctrl+c & ctrl+v sont actifs${NC} "
-    echo -e "  ${DIM}Ctrl+Shift+Enter Splitter le terminal${NC} "
-    echo -e "  ${DIM}Ctrl+Shift+/ Passer en split vertical${NC} "
-
-
-
+    echo -e "  ${ORANGE}Oh My Posh :${NC} omp-theme [nom] pour changer de thème"
+    echo -e "  ${DIM}Pour modifier/ajouter des alias, rendez-vous dans le fichier .bashrc${NC}"
+    echo -e "  ${DIM}Ctrl+Shift+Enter pour splitter le terminal${NC}"
     echo ""
+}
+
+# Fonction pour changer de thème Oh My Posh
+omp-theme() {
+    if [ -z "$1" ]; then
+        echo -e "${YELLOW}Thèmes disponibles :${NC}"
+        ls ~/.cache/oh-my-posh/themes/*.omp.json 2>/dev/null | xargs -n1 basename | sed 's/.omp.json//' | sort
+        return
+    fi
+    
+    local theme_file="$HOME/.cache/oh-my-posh/themes/$1.omp.json"
+    if [ -f "$theme_file" ]; then
+        eval "$(oh-my-posh init bash --config '$theme_file')"
+        echo -e "${GREEN}Thème '$1' appliqué${NC}"
+    else
+        echo -e "${RED}Thème '$1' introuvable${NC}"
+    fi
 }
 
 # Aliases
@@ -437,10 +472,16 @@ alias proj='cd ~/Documents/Projets'
 alias web='cd ~/Documents/Projets'
 alias util='cd ~/Documents/Utilitaires'
 
-# Oh My Posh
+# PATH pour Oh My Posh
+export PATH="$HOME/.local/bin:$PATH"
+
+# Oh My Posh - Configuration unique et sécurisée
 if command -v oh-my-posh &> /dev/null; then
+    # Chercher un thème par ordre de préférence
     if [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
         eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/aliens.omp.json')"
+    elif [ -f "$HOME/.cache/oh-my-posh/themes/atomic.omp.json" ]; then
+        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/atomic.omp.json')"
     else
         eval "$(oh-my-posh init bash)"
     fi
@@ -462,6 +503,51 @@ set_default_terminal() {
             print_success "Kitty défini comme terminal par défaut"
         fi
     fi
+}
+
+# =============================================================================
+# TESTS ET DIAGNOSTICS
+# =============================================================================
+
+run_diagnostics() {
+    print_step "Tests de validation..."
+    
+    local errors=0
+    
+    # Test Oh My Posh
+    if [ -f "$OMP_BINARY" ] && "$OMP_BINARY" --version >/dev/null 2>&1; then
+        local omp_version=$("$OMP_BINARY" --version 2>/dev/null | head -n1)
+        print_success "Oh My Posh fonctionnel : $omp_version"
+    else
+        print_error "Oh My Posh non fonctionnel"
+        ((errors++))
+    fi
+    
+    # Test Kitty
+    if command -v kitty &> /dev/null; then
+        local kitty_version=$(kitty --version 2>/dev/null | head -n1)
+        print_success "Kitty fonctionnel : $kitty_version"
+    else
+        print_error "Kitty non fonctionnel"
+        ((errors++))
+    fi
+    
+    # Test polices
+    if fc-list | grep -i "jetbrainsmono" >/dev/null 2>&1; then
+        print_success "Polices JetBrains Mono détectées"
+    else
+        print_warning "Polices JetBrains Mono non détectées"
+    fi
+    
+    # Test thèmes
+    local theme_count=$(ls "$OMP_THEMES_DIR"/*.omp.json 2>/dev/null | wc -l)
+    if [ "$theme_count" -gt 0 ]; then
+        print_success "$theme_count thèmes Oh My Posh disponibles"
+    else
+        print_warning "Aucun thème Oh My Posh trouvé"
+    fi
+    
+    return $errors
 }
 
 # =============================================================================
@@ -492,14 +578,24 @@ main() {
     set_default_terminal
     echo ""
     
-    print_header
-    print_success "Installation terminée !"
-    echo ""
-    print_info "PROCHAINES ÉTAPES :"
-    echo -e "  ${CYAN}1.${NC} Redémarrez votre session"
-    echo -e "  ${CYAN}2.${NC} Ou lancez : ${BOLD}source ~/.bashrc${NC}"
-    echo -e "  ${CYAN}3.${NC} Lancez Kitty : ${BOLD}kitty${NC}"
-    echo ""
+    # Tests de validation
+    if run_diagnostics; then
+        print_header
+        print_success "Installation terminée avec succès !"
+        echo ""
+        print_info "PROCHAINES ÉTAPES :"
+        echo -e "  ${CYAN}1.${NC} Redémarrez votre session ou lancez : ${BOLD}source ~/.bashrc${NC}"
+        echo -e "  ${CYAN}2.${NC} Lancez Kitty : ${BOLD}kitty${NC}"
+        echo -e "  ${CYAN}3.${NC} Testez Oh My Posh : ${BOLD}oh-my-posh --version${NC}"
+        echo -e "  ${CYAN}4.${NC} Changez de thème : ${BOLD}omp-theme aliens${NC}"
+        echo ""
+    else
+        print_header
+        print_warning "Installation terminée avec des avertissements"
+        echo ""
+        print_info "Vérifiez les erreurs ci-dessus et relancez si nécessaire"
+        echo ""
+    fi
     
     log "Installation terminée"
 }
