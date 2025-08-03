@@ -2,7 +2,7 @@
 
 # =============================================================================
 # TERMINAL DEV SETUP - Installation complète Kitty + Oh My Posh (LINUX)
-# Version corrigée pour Pop!_OS
+# Version corrigée pour Pop!_OS - Fix CONFIG ERROR
 # =============================================================================
 
 # Couleurs
@@ -158,7 +158,7 @@ install_oh_my_posh() {
         return 0
     fi
     
-    # Méthode alternative plus fiable pour Pop!_OS
+    # Créer le répertoire bin
     mkdir -p "$HOME/.local/bin"
     
     # Détecter l'architecture
@@ -182,16 +182,6 @@ install_oh_my_posh() {
         
         # Test du binaire
         if "$OMP_BINARY" --version >/dev/null 2>&1; then
-            # Ajouter au PATH de façon permanente si nécessaire
-            if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$HOME/.bashrc" 2>/dev/null; then
-                echo '' >> "$HOME/.bashrc"
-                echo '# Oh My Posh PATH' >> "$HOME/.bashrc"
-                echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
-            fi
-            
-            # Exporter pour cette session
-            export PATH="$HOME/.local/bin:$PATH"
-            
             print_success "Oh My Posh installé et vérifié"
         else
             print_error "Oh My Posh téléchargé mais non fonctionnel"
@@ -209,19 +199,19 @@ download_themes() {
     
     mkdir -p "$OMP_THEMES_DIR"
     
-    # Télécharger quelques thèmes populaires directement
+    # Télécharger les thèmes populaires directement depuis le repo
     local themes=("aliens" "atomic" "blue-owl" "capr4n" "catppuccin" "craver" "dracula" "jandedobbeleer" "kushal" "lambda" "marcduiker" "paradox" "pure" "robbyrussell" "spaceship" "star" "stelbent" "tokyo")
     
+    local downloaded=0
     for theme in "${themes[@]}"; do
         local theme_url="https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/${theme}.omp.json"
         if wget -q "$theme_url" -O "$OMP_THEMES_DIR/${theme}.omp.json" 2>/dev/null; then
-            print_info "Thème $theme téléchargé"
+            ((downloaded++))
         fi
     done
     
-    # Vérifier qu'au moins un thème a été téléchargé
-    if [ "$(ls -A $OMP_THEMES_DIR 2>/dev/null | wc -l)" -gt 0 ]; then
-        print_success "Thèmes téléchargés"
+    if [ "$downloaded" -gt 0 ]; then
+        print_success "$downloaded thèmes téléchargés"
     else
         print_warning "Aucun thème téléchargé, utilisation du thème par défaut"
     fi
@@ -322,7 +312,7 @@ remember_window_size no
 shell_integration enabled
 EOF
 
-    # Script startup simplifié (sans Oh My Posh ici)
+    # Script startup avec bannière complète
     cat > "$KITTY_CONFIG_DIR/startup.sh" << 'EOF'
 #!/bin/bash
 
@@ -394,12 +384,18 @@ EOF
 configure_bashrc() {
     print_step "Configuration du .bashrc..."
     
+    # Sauvegarde du .bashrc existant
     if [ -f "$HOME/.bashrc" ]; then
         cp "$HOME/.bashrc" "$HOME/.bashrc.backup.$(date +%Y%m%d_%H%M%S)"
+        print_info "Sauvegarde créée : .bashrc.backup.$(date +%Y%m%d_%H%M%S)"
     fi
     
     # Supprimer les anciennes configurations si elles existent
     sed -i '/# CONFIG PERSO - TERMINAL DEV SETUP/,$d' "$HOME/.bashrc" 2>/dev/null
+    
+    # Nettoyer les anciennes références Oh My Posh pour éviter les conflits
+    sed -i '/oh-my-posh/d' "$HOME/.bashrc" 2>/dev/null
+    sed -i '/Oh My Posh/d' "$HOME/.bashrc" 2>/dev/null
     
     cat >> "$HOME/.bashrc" << 'EOF'
 
@@ -407,6 +403,7 @@ configure_bashrc() {
 # CONFIG PERSO - TERMINAL DEV SETUP
 # =============================================================================
 
+# Couleurs pour les fonctions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -421,13 +418,16 @@ NC='\033[0m'
 BOLD='\033[1m'
 DIM='\033[2m'
 
-# Démarrage custom (uniquement en mode interactif)
+# PATH pour Oh My Posh (doit être avant l'initialisation)
+export PATH="$HOME/.local/bin:$PATH"
+
+# Démarrage custom (uniquement en mode interactif et première fois)
 if [[ $- == *i* ]] && [[ -z "$STARTUP_DONE" ]] && [[ -f "$HOME/.config/kitty/startup.sh" ]]; then
     export STARTUP_DONE=1
     ~/.config/kitty/startup.sh
 fi
 
-# Fonction d'aide
+# Fonction d'aide avec tous les tips
 aide() {
     echo ""
     echo -e "${WHITE}${BOLD}🦊 AIDE - COMMANDES DISPONIBLES${NC}"
@@ -436,60 +436,116 @@ aide() {
     echo -e "  ${PURPLE}Git :${NC} gs (status), ga (add), gc (commit), gp (push)"
     echo -e "  ${BLUE}Système :${NC} ll, ports, myip, cpu"
     echo -e "  ${ORANGE}Oh My Posh :${NC} omp-theme [nom] pour changer de thème"
-    echo -e "  ${DIM}Pour modifier/ajouter des alias, rendez-vous dans le fichier .bashrc${NC}"
-    echo -e "  ${DIM}Ctrl+Shift+Enter pour splitter le terminal${NC}"
+    echo ""
+    echo -e "${WHITE}${BOLD}💡 TIPS & ASTUCES${NC}"
+    echo -e "${GRAY}▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔${NC}"
+    echo -e "  ${CYAN}🎨 Personnalisation :${NC}"
+    echo -e "  ${DIM}   • Modifiez les alias dans ~/.bashrc${NC}"
+    echo -e "  ${DIM}   • Explorez les thèmes Oh-My-Posh sur ohmyposh.dev${NC}"
+    echo -e "  ${DIM}   • Personnalisez Kitty dans ~/.config/kitty/kitty.conf${NC}"
+    echo ""
+    echo -e "  ${CYAN}⌨️  Raccourcis Kitty :${NC}"
+    echo -e "  ${DIM}   • Ctrl+C & Ctrl+V : Copier/Coller${NC}"
+    echo -e "  ${DIM}   • Ctrl+Shift+Enter : Diviser le terminal${NC}"
+    echo -e "  ${DIM}   • Ctrl+Shift+/ : Basculer entre divisions verticales/horizontales${NC}"
+    echo -e "  ${DIM}   • Ctrl+Shift+] : Fenêtre suivante${NC}"
+    echo -e "  ${DIM}   • Ctrl+Shift+[ : Fenêtre précédente${NC}"
+    echo ""
+    echo -e "  ${CYAN}🔧 Dépannage :${NC}"
+    echo -e "  ${DIM}   • Si Oh My Posh ne fonctionne pas : source ~/.bashrc${NC}"
+    echo -e "  ${DIM}   • Pour réinitialiser : rm ~/.bashrc && cp ~/.bashrc.backup.* ~/.bashrc${NC}"
+    echo -e "  ${DIM}   • Voir les logs d'installation : cat setup.log${NC}"
+    echo ""
+    echo -e "  ${CYAN}🚀 Productivité :${NC}"
+    echo -e "  ${DIM}   • Utilisez 'proj' pour aller dans vos projets${NC}"
+    echo -e "  ${DIM}   • 'ports' pour voir les ports ouverts${NC}"
+    echo -e "  ${DIM}   • 'myip' pour votre IP publique${NC}"
+    echo -e "  ${DIM}   • 'gs' pour un git status rapide${NC}"
     echo ""
 }
 
-# Fonction pour changer de thème Oh My Posh
+# Fonction pour changer de thème Oh My Posh (corrigée)
 omp-theme() {
     if [ -z "$1" ]; then
         echo -e "${YELLOW}Thèmes disponibles :${NC}"
-        ls ~/.cache/oh-my-posh/themes/*.omp.json 2>/dev/null | xargs -n1 basename | sed 's/.omp.json//' | sort
+        if [ -d "$HOME/.cache/oh-my-posh/themes" ]; then
+            ls "$HOME/.cache/oh-my-posh/themes"/*.omp.json 2>/dev/null | xargs -n1 basename | sed 's/.omp.json//' | sort
+        else
+            echo -e "${RED}Aucun thème trouvé. Réinstallez avec le script.${NC}"
+        fi
         return
     fi
     
     local theme_file="$HOME/.cache/oh-my-posh/themes/$1.omp.json"
     if [ -f "$theme_file" ]; then
+        # Réinitialiser Oh My Posh avec le nouveau thème
+        unset POSH_THEME
         eval "$(oh-my-posh init bash --config '$theme_file')"
-        echo -e "${GREEN}Thème '$1' appliqué${NC}"
+        echo -e "${GREEN}Thème '$1' appliqué pour cette session${NC}"
+        echo -e "${DIM}Pour le rendre permanent, modifiez ~/.bashrc${NC}"
     else
         echo -e "${RED}Thème '$1' introuvable${NC}"
+        echo -e "${YELLOW}Thèmes disponibles : ${NC}"
+        ls "$HOME/.cache/oh-my-posh/themes"/*.omp.json 2>/dev/null | xargs -n1 basename | sed 's/.omp.json//' | sort
     fi
+}
+
+# Fonction pour réinitialiser Oh My Posh
+omp-reset() {
+    unset POSH_THEME
+    if [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
+        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/aliens.omp.json')"
+    else
+        eval "$(oh-my-posh init bash)"
+    fi
+    echo -e "${GREEN}Oh My Posh réinitialisé${NC}"
 }
 
 # Aliases
 alias ll='ls -alF --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF --color=auto'
 alias ports='sudo netstat -tuln'
 alias myip='curl -s https://httpbin.org/ip | jq -r .origin'
 alias cpu='top -bn1 | grep "Cpu(s)" | awk "{print \$2}" | awk -F"%" "{print \$1}"'
 alias home='cd ~'
+alias ..='cd ..'
+alias ...='cd ../..'
+
+# Git aliases
 alias gs='git status'
 alias ga='git add'
 alias gc='git commit'
 alias gp='git push'
-alias proj='cd ~/Documents/Projets'
-alias web='cd ~/Documents/Projets'
-alias util='cd ~/Documents/Utilitaires'
+alias gl='git log --oneline'
+alias gd='git diff'
 
-# PATH pour Oh My Posh
-export PATH="$HOME/.local/bin:$PATH"
+# Navigation aliases
+alias proj='cd ~/Documents/Projets 2>/dev/null || cd ~/Documents/Projects 2>/dev/null || cd ~/Projects 2>/dev/null || mkdir -p ~/Documents/Projets && cd ~/Documents/Projets'
+alias web='cd ~/Documents/Projets 2>/dev/null || cd ~/Documents/Projects 2>/dev/null || cd ~/Projects 2>/dev/null || mkdir -p ~/Documents/Projets && cd ~/Documents/Projets'
+alias util='mkdir -p ~/Documents/Utilitaires && cd ~/Documents/Utilitaires'
 
-# Oh My Posh - Configuration unique et sécurisée
+# Oh My Posh - Configuration finale et sécurisée
 if command -v oh-my-posh &> /dev/null; then
-    # Chercher un thème par ordre de préférence
-    if [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
-        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/aliens.omp.json')"
-    elif [ -f "$HOME/.cache/oh-my-posh/themes/atomic.omp.json" ]; then
-        eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/atomic.omp.json')"
-    else
-        eval "$(oh-my-posh init bash)"
+    # Vérifier que Oh My Posh fonctionne avant de l'initialiser
+    if oh-my-posh --version >/dev/null 2>&1; then
+        # Chercher un thème par ordre de préférence
+        if [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
+            eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/aliens.omp.json')"
+        elif [ -f "$HOME/.cache/oh-my-posh/themes/atomic.omp.json" ]; then
+            eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/atomic.omp.json')"
+        elif [ -f "$HOME/.cache/oh-my-posh/themes/paradox.omp.json" ]; then
+            eval "$(oh-my-posh init bash --config '$HOME/.cache/oh-my-posh/themes/paradox.omp.json')"
+        else
+            # Utiliser le thème par défaut si aucun thème personnalisé n'est trouvé
+            eval "$(oh-my-posh init bash)"
+        fi
     fi
 fi
 
 EOF
 
-    print_success "Configuration .bashrc mise à jour"
+    print_success "Configuration .bashrc mise à jour avec tous les tips"
 }
 
 set_default_terminal() {
@@ -587,8 +643,10 @@ main() {
         echo -e "  ${CYAN}1.${NC} Redémarrez votre session ou lancez : ${BOLD}source ~/.bashrc${NC}"
         echo -e "  ${CYAN}2.${NC} Lancez Kitty : ${BOLD}kitty${NC}"
         echo -e "  ${CYAN}3.${NC} Testez Oh My Posh : ${BOLD}oh-my-posh --version${NC}"
-        echo -e "  ${CYAN}4.${NC} Changez de thème : ${BOLD}omp-theme aliens${NC}"
+        echo -e "  ${CYAN}4.${NC} Changez de thème : ${BOLD}omp-theme atomic${NC}"
+        echo -e "  ${CYAN}5.${NC} Voir l'aide : ${BOLD}aide${NC}"
         echo ""
+        print_warning "Si CONFIG ERROR persiste, lancez : ${BOLD}omp-reset${NC}"
     else
         print_header
         print_warning "Installation terminée avec des avertissements"
