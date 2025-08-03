@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # =============================================================================
-# TERMINAL DEV SETUP - Installation complète Kitty + Oh My Posh
-# Version finale corrigée - Compatible toutes distributions Linux
+# BEAUTIFUL SHELL - Installation complète Terminal + Oh My Posh + Kitty
+# Version finale - Compatible toutes distributions Linux
 # =============================================================================
 
 # Couleurs
@@ -19,7 +19,7 @@ NC='\033[0m'
 
 # Variables
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_FILE="$SCRIPT_DIR/setup.log"
+LOG_FILE="$SCRIPT_DIR/beautiful-shell.log"
 KITTY_CONFIG_DIR="$HOME/.config/kitty"
 OMP_THEMES_DIR="$HOME/.cache/oh-my-posh/themes"
 OMP_BINARY="$HOME/.local/bin/oh-my-posh"
@@ -32,8 +32,8 @@ print_header() {
     clear
     echo ""
     echo -e "${PURPLE}╔════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${PURPLE}║${NC}                    ${CYAN}🦊${NC} ${WHITE}${BOLD}TERMINAL DEV SETUP${NC}                    ${PURPLE}║${NC}"
-    echo -e "${PURPLE}║${NC}                  ${DIM}Installation automatisée${NC}                  ${PURPLE}║${NC}"
+    echo -e "${PURPLE}║${NC}                    ${CYAN}🦊${NC} ${WHITE}${BOLD}BEAUTIFUL SHELL${NC}                     ${PURPLE}║${NC}"
+    echo -e "${PURPLE}║${NC}                  ${DIM}Configuration automatisée${NC}                 ${PURPLE}║${NC}"
     echo -e "${PURPLE}╚════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 }
@@ -154,11 +154,11 @@ cleanup_previous_install() {
         cp "$HOME/.bashrc" "$HOME/.bashrc.backup.$(date +%Y%m%d_%H%M%S)"
         print_info "Sauvegarde .bashrc créée"
         
-        # Supprimer les anciennes configurations Oh My Posh
+        # Supprimer les anciennes configurations
         sed -i '/oh-my-posh/d' "$HOME/.bashrc" 2>/dev/null
         sed -i '/Oh My Posh/d' "$HOME/.bashrc" 2>/dev/null
         sed -i '/POSH_/d' "$HOME/.bashrc" 2>/dev/null
-        sed -i '/# CONFIG PERSO - TERMINAL DEV SETUP/,$d' "$HOME/.bashrc" 2>/dev/null
+        sed -i '/# BEAUTIFUL SHELL CONFIGURATION/,$d' "$HOME/.bashrc" 2>/dev/null
     fi
     
     print_success "Nettoyage terminé"
@@ -324,7 +324,7 @@ configure_kitty() {
     
     cat > "$KITTY_CONFIG_DIR/kitty.conf" << 'EOF'
 # =============================================================================
-# KITTY TERMINAL CONFIGURATION - TERMINAL DEV SETUP
+# KITTY TERMINAL CONFIGURATION - BEAUTIFUL SHELL
 # =============================================================================
 
 # Police et taille
@@ -422,7 +422,7 @@ spaces=$(printf "%*s" $padding "")
 USERNAME=$(whoami | tr '[:lower:]' '[:upper:]')
 
 echo ""
-echo -e "${spaces}${ORANGE}🦊${NC} ${WHITE}${BOLD}TERMINAL DEV ${USERNAME}${NC} ${ORANGE}🦊${NC}"
+echo -e "${spaces}${ORANGE}🦊${NC} ${WHITE}${BOLD}BEAUTIFUL SHELL ${USERNAME}${NC} ${ORANGE}🦊${NC}"
 echo -e "${spaces}${DIM}${GRAY}Intelligent • Rapide • Fiable${NC}"
 echo ""
 
@@ -453,7 +453,7 @@ QUOTES=(
     "La seule façon d'apprendre un nouveau langage de programmation est d'écrire des programmes avec. - Dennis Ritchie"
     "Déboguer est deux fois plus difficile que d'écrire le code au départ. - Brian Kernighan"
     "Faites que ça marche, faites que ce soit correct, faites que ce soit rapide. - Kent Beck"
-    "Le code ne mentit jamais, les commentaires parfois. - Ron Jeffries"
+    "Le code ne ment jamais, les commentaires parfois. - Ron Jeffries"
     "La programmation ne consiste pas à taper, mais à réfléchir. - Rich Hickey"
     "La propriété la plus importante d'un programme est de réaliser l'intention de son utilisateur. - C.A.R. Hoare"
     "Ce n'est pas un bug, c'est une fonctionnalité non documentée. - Anonyme"
@@ -479,7 +479,7 @@ configure_bashrc() {
     cat >> "$HOME/.bashrc" << 'EOF'
 
 # =============================================================================
-# CONFIG PERSO - TERMINAL DEV SETUP
+# BEAUTIFUL SHELL CONFIGURATION
 # =============================================================================
 
 # Couleurs pour les fonctions personnalisées
@@ -511,42 +511,215 @@ fi
 # =============================================================================
 
 # Fonction d'aide complète
-aide() {
+beautiful-help() {
     echo ""
-    echo -e "${WHITE}${BOLD}🦊 AIDE - COMMANDES DISPONIBLES${NC}"
+    echo -e "${WHITE}${BOLD}🦊 BEAUTIFUL SHELL - AIDE${NC}"
     echo -e "${GRAY}▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔${NC}"
     echo -e "  ${GREEN}Navigation :${NC} proj, web, util, home, .., ..."
     echo -e "  ${PURPLE}Git :${NC} gs (status), ga (add), gc (commit), gp (push), gl (log), gd (diff)"
     echo -e "  ${BLUE}Système :${NC} ll, la, ports, myip, cpu"
-    echo -e "  ${ORANGE}Oh My Posh :${NC} omp-theme [nom], omp-save [nom], omp-reset, omp-list"
+    echo -e "  ${ORANGE}Thèmes :${NC} beautiful-themes, omp-theme [nom], omp-save [nom], omp-reset, omp-list"
+    echo -e "  ${RED}Maintenance :${NC} beautiful-remove, beautiful-backup"
     echo ""
     echo -e "${WHITE}${BOLD}💡 TIPS & ASTUCES${NC}"
     echo -e "${GRAY}▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔${NC}"
     echo -e "  ${CYAN}🎨 Personnalisation :${NC}"
-    echo -e "     • Modifiez les alias dans ~/.bashrc"
-    echo -e "     • Explorez les thèmes Oh-My-Posh : omp-list"
-    echo -e "     • Personnalisez Kitty : ~/.config/kitty/kitty.conf"
+    echo -e "     • beautiful-themes pour gérer les thèmes"
+    echo -e "     • omp-theme [nom] pour tester un thème"
+    echo -e "     • omp-save [nom] pour sauvegarder"
+    echo -e "     • Modifiez ~/.config/kitty/kitty.conf pour Kitty"
     echo ""
     echo -e "  ${CYAN}⌨️  Raccourcis Kitty :${NC}"
     echo -e "     • Ctrl+C & Ctrl+V : Copier/Coller"
     echo -e "     • Ctrl+Shift+Enter : Nouvelle fenêtre"
     echo -e "     • Ctrl+Shift+] : Fenêtre suivante"
     echo -e "     • Ctrl+Shift+[ : Fenêtre précédente"
-    echo -e "     • Ctrl+Shift+C/V : Copier/Coller (alternative)"
     echo ""
     echo -e "  ${CYAN}🔧 Dépannage :${NC}"
-    echo -e "     • Oh My Posh ne marche pas : omp-reset"
-    echo -e "     • Recharger config : source ~/.bashrc"
-    echo -e "     • Restaurer .bashrc : cp ~/.bashrc.backup.* ~/.bashrc"
-    echo -e "     • Logs installation : cat setup.log"
+    echo -e "     • omp-reset pour réinitialiser Oh My Posh"
+    echo -e "     • source ~/.bashrc pour recharger"
+    echo -e "     • beautiful-backup pour voir les sauvegardes"
+    echo -e "     • beautiful-remove pour tout supprimer"
     echo ""
     echo -e "  ${CYAN}🚀 Productivité :${NC}"
-    echo -e "     • 'proj' pour aller dans vos projets"
-    echo -e "     • 'ports' pour voir les ports ouverts"
-    echo -e "     • 'myip' pour votre IP publique"
+    echo -e "     • 'proj' pour vos projets"
     echo -e "     • 'gs' pour git status rapide"
     echo -e "     • 'll' pour listing détaillé"
+    echo -e "     • 'myip' pour votre IP publique"
     echo ""
+    echo -e "${WHITE}${BOLD}📋 COMMANDES BEAUTIFUL SHELL :${NC}"
+    echo -e "${GRAY}▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔${NC}"
+    echo -e "  • ${GREEN}beautiful-help${NC}          Afficher cette aide"
+    echo -e "  • ${GREEN}beautiful-themes${NC}        Gestionnaire de thèmes"
+    echo -e "  • ${GREEN}beautiful-remove${NC}        Désinstaller Beautiful Shell"
+    echo -e "  • ${GREEN}beautiful-backup${NC}        Voir les sauvegardes"
+    echo ""
+    echo -e "  ${CYAN}Versions courtes :${NC}"
+    echo -e "  • ${GREEN}bs-help${NC}   • ${GREEN}bs-themes${NC}   • ${GREEN}bs-remove${NC}   • ${GREEN}bs-backup${NC}"
+    echo ""
+}
+
+# Gestionnaire de thèmes interactif
+beautiful-themes() {
+    while true; do
+        clear
+        echo ""
+        echo -e "${PURPLE}╔══════════════════════════════════════════════════════════════╗${NC}"
+        echo -e "${PURPLE}║${NC}                ${CYAN}🎨${NC} ${WHITE}${BOLD}GESTIONNAIRE DE THÈMES${NC}                ${PURPLE}║${NC}"
+        echo -e "${PURPLE}╚══════════════════════════════════════════════════════════════╝${NC}"
+        echo ""
+        
+        echo -e "${WHITE}${BOLD}ACTIONS DISPONIBLES :${NC}"
+        echo -e "${GRAY}────────────────────────────────────────────────────────────────${NC}"
+        echo ""
+        echo -e "${CYAN}1.${NC} Voir tous les thèmes disponibles"
+        echo -e "${CYAN}2.${NC} Prévisualiser un thème"
+        echo -e "${CYAN}3.${NC} Sauvegarder le thème actuel"
+        echo -e "${CYAN}4.${NC} Réinitialiser au thème par défaut"
+        echo -e "${CYAN}5.${NC} Voir le thème actuellement utilisé"
+        echo -e "${CYAN}0.${NC} Retour au terminal"
+        echo ""
+        
+        read -p "Votre choix : " choice
+        echo ""
+        
+        case $choice in
+            1)
+                echo -e "${CYAN}Thèmes disponibles :${NC}"
+                omp-list
+                ;;
+            2)
+                read -p "Nom du thème à prévisualiser : " theme_name
+                if [ -n "$theme_name" ]; then
+                    omp-theme "$theme_name"
+                fi
+                ;;
+            3)
+                read -p "Nom du thème à sauvegarder : " theme_name
+                if [ -n "$theme_name" ]; then
+                    omp-save "$theme_name"
+                fi
+                ;;
+            4)
+                omp-reset
+                ;;
+            5)
+                if [ -n "$POSH_THEME" ]; then
+                    current_theme=$(basename "$POSH_THEME" .omp.json)
+                    echo -e "${CYAN}Thème actuel :${NC} ${GREEN}$current_theme${NC}"
+                else
+                    echo -e "${YELLOW}Thème par défaut d'Oh My Posh${NC}"
+                fi
+                ;;
+            0)
+                echo -e "${GREEN}Retour au terminal${NC}"
+                break
+                ;;
+            *)
+                echo -e "${RED}Choix invalide${NC}"
+                ;;
+        esac
+        
+        if [ "$choice" != "0" ]; then
+            echo ""
+            read -p "Appuyez sur Entrée pour continuer..."
+        fi
+    done
+}
+
+# Fonction de désinstallation complète
+beautiful-remove() {
+    echo ""
+    echo -e "${RED}${BOLD}⚠️  DÉSINSTALLATION BEAUTIFUL SHELL ⚠️${NC}"
+    echo -e "${YELLOW}Cette action va supprimer complètement l'installation${NC}"
+    echo ""
+    
+    echo -e "${WHITE}Éléments qui seront supprimés :${NC}"
+    echo -e "  • Oh My Posh (binaire et cache)"
+    echo -e "  • Configuration Kitty personnalisée"
+    echo -e "  • Thèmes Oh My Posh"
+    echo -e "  • Polices JetBrains Mono Nerd Font (optionnel)"
+    echo -e "  • Aliases et fonctions personnalisées"
+    echo ""
+    echo -e "${CYAN}Le .bashrc sera restauré depuis la sauvegarde la plus récente${NC}"
+    echo ""
+    
+    read -p "Tapez 'CONFIRMER' pour continuer : " confirmation
+    
+    if [ "$confirmation" != "CONFIRMER" ]; then
+        echo -e "${GREEN}Désinstallation annulée${NC}"
+        return 0
+    fi
+    
+    echo ""
+    echo -e "${BLUE}Début de la désinstallation...${NC}"
+    
+    # 1. Supprimer Oh My Posh
+    echo -e "${YELLOW}1. Suppression d'Oh My Posh...${NC}"
+    rm -f "$HOME/.local/bin/oh-my-posh" 2>/dev/null && echo -e "   ✓ Binaire supprimé"
+    rm -rf "$HOME/.cache/oh-my-posh" 2>/dev/null && echo -e "   ✓ Cache et thèmes supprimés"
+    
+    # 2. Restaurer .bashrc
+    echo -e "${YELLOW}2. Restauration du .bashrc...${NC}"
+    latest_backup=$(ls -t ~/.bashrc.backup.* 2>/dev/null | head -n1)
+    
+    if [ -n "$latest_backup" ] && [ -f "$latest_backup" ]; then
+        cp ~/.bashrc ~/.bashrc.before_uninstall.$(date +%Y%m%d_%H%M%S)
+        cp "$latest_backup" ~/.bashrc
+        echo -e "   ✓ Restauré depuis : $(basename "$latest_backup")"
+    else
+        sed -i '/# BEAUTIFUL SHELL CONFIGURATION/,$d' ~/.bashrc 2>/dev/null
+        echo -e "   ✓ Configuration supprimée manuellement"
+    fi
+    
+    # 3. Configuration Kitty
+    echo -e "${YELLOW}3. Configuration Kitty...${NC}"
+    if grep -q "BEAUTIFUL SHELL" "$HOME/.config/kitty/kitty.conf" 2>/dev/null; then
+        rm -f "$HOME/.config/kitty/kitty.conf"
+        echo -e "   ✓ Configuration personnalisée supprimée"
+    fi
+    rm -f "$HOME/.config/kitty/startup.sh" 2>/dev/null && echo -e "   ✓ Script de démarrage supprimé"
+    
+    # 4. Polices (optionnel)
+    echo -e "${YELLOW}4. Polices JetBrains Mono...${NC}"
+    read -p "Supprimer les polices ? (y/N) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        find "$HOME/.local/share/fonts" -name "JetBrainsMonoNerdFont-*.ttf" -delete 2>/dev/null
+        fc-cache -fv "$HOME/.local/share/fonts" >/dev/null 2>&1
+        echo -e "   ✓ Polices supprimées"
+    else
+        echo -e "   ✓ Polices conservées"
+    fi
+    
+    # 5. Variables d'environnement
+    unset POSH_THEME POSH_SESSION_ID POSH_SHELL_VERSION POSH_PID STARTUP_DONE
+    
+    echo ""
+    echo -e "${GREEN}${BOLD}✅ DÉSINSTALLATION TERMINÉE${NC}"
+    echo -e "${CYAN}Redémarrez votre session ou tapez : source ~/.bashrc${NC}"
+    echo ""
+}
+
+# Lister les sauvegardes disponibles
+beautiful-backup() {
+    echo -e "${CYAN}${BOLD}SAUVEGARDES DISPONIBLES :${NC}"
+    echo ""
+    
+    echo -e "${YELLOW}.bashrc :${NC}"
+    if ls ~/.bashrc.backup.* >/dev/null 2>&1; then
+        ls -la ~/.bashrc.backup.* | while read -r line; do
+            echo "  $line"
+        done
+    else
+        echo "  Aucune sauvegarde trouvée"
+    fi
+    echo ""
+}
+
+# Fonction d'aide complète (alias pour rétrocompatibilité)
+aide() {
+    beautiful-help
 }
 
 # Fonction pour changer de thème Oh My Posh
@@ -590,20 +763,19 @@ omp-save() {
     cp ~/.bashrc ~/.bashrc.backup.theme.$(date +%Y%m%d_%H%M%S)
     
     # Supprimer l'ancienne configuration Oh My Posh
-    sed -i '/# Chercher un thème par ordre de préférence/,/^fi$/d' ~/.bashrc
+    sed -i '/# Initialisation Oh My Posh/,/^fi$/d' ~/.bashrc
     
     # Ajouter la nouvelle configuration avec le thème sauvegardé en premier
     cat >> ~/.bashrc << EOF
 
-        # Chercher un thème par ordre de préférence
+# Initialisation Oh My Posh avec thème sauvegardé
+if [[ \$- == *i* ]] && command -v oh-my-posh >/dev/null 2>&1; then
+    if oh-my-posh --version >/dev/null 2>&1; then
         if [ -f "\$HOME/.cache/oh-my-posh/themes/$theme_name.omp.json" ]; then
             eval "\$(oh-my-posh init bash --config "\$HOME/.cache/oh-my-posh/themes/$theme_name.omp.json")"
         elif [ -f "\$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
             eval "\$(oh-my-posh init bash --config "\$HOME/.cache/oh-my-posh/themes/aliens.omp.json")"
-        elif [ -f "\$HOME/.cache/oh-my-posh/themes/atomic.omp.json" ]; then
-            eval "\$(oh-my-posh init bash --config "\$HOME/.cache/oh-my-posh/themes/atomic.omp.json")"
         else
-            # Utiliser le thème par défaut
             eval "\$(oh-my-posh init bash)"
         fi
     fi
@@ -612,16 +784,17 @@ fi
 EOF
 
     echo -e "${GREEN}✓ Thème '$theme_name' sauvegardé comme thème par défaut${NC}"
-    echo -e "${CYAN}Le thème sera appliqué dans les nouvelles sessions de terminal${NC}"
+    echo -e "${CYAN}Le thème sera appliqué dans les nouvelles sessions${NC}"
     echo -e "${DIM}Sauvegarde créée : ~/.bashrc.backup.theme.$(date +%Y%m%d_%H%M%S)${NC}"
 }
 
 # Lister les thèmes disponibles
 omp-list() {
     if [ -d "$HOME/.cache/oh-my-posh/themes" ]; then
+        echo -e "${CYAN}Thèmes Oh My Posh disponibles :${NC}"
         ls "$HOME/.cache/oh-my-posh/themes"/*.omp.json 2>/dev/null | xargs -n1 basename | sed 's/.omp.json//' | sort | column
     else
-        echo -e "${RED}Aucun thème trouvé. Réinstallez avec le script.${NC}"
+        echo -e "${RED}Aucun thème trouvé. Réinstallez Beautiful Shell.${NC}"
     fi
 }
 
@@ -641,8 +814,34 @@ omp-reset() {
 }
 
 # =============================================================================
+# FONCTIONS DE DÉSINSTALLATION
+# =============================================================================
+
+# Fonction de désinstallation complète (alias pour rétrocompatibilité)
+desinstaller() {
+    beautiful-remove
+}
+
+# Lister les sauvegardes disponibles (alias pour rétrocompatibilité)
+sauvegardes() {
+    beautiful-backup
+}
+
+# =============================================================================
 # ALIASES
 # =============================================================================
+
+# Beautiful Shell commands (versions principales)
+alias beautiful-help='beautiful-help'
+alias beautiful-themes='beautiful-themes'
+alias beautiful-remove='beautiful-remove'
+alias beautiful-backup='beautiful-backup'
+
+# Beautiful Shell commands (versions courtes)
+alias bs-help='beautiful-help'
+alias bs-themes='beautiful-themes'
+alias bs-remove='beautiful-remove'
+alias bs-backup='beautiful-backup'
 
 # Listing et navigation
 alias ll='ls -alF --color=auto'
@@ -686,9 +885,7 @@ alias fgrep='fgrep --color=auto'
 
 # Oh My Posh - Configuration sécurisée
 if [[ $- == *i* ]] && command -v oh-my-posh >/dev/null 2>&1; then
-    # Vérifier que Oh My Posh fonctionne
     if oh-my-posh --version >/dev/null 2>&1; then
-        # Chercher un thème par ordre de préférence
         if [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
             eval "$(oh-my-posh init bash --config "$HOME/.cache/oh-my-posh/themes/aliens.omp.json")"
         elif [ -f "$HOME/.cache/oh-my-posh/themes/atomic.omp.json" ]; then
@@ -696,7 +893,6 @@ if [[ $- == *i* ]] && command -v oh-my-posh >/dev/null 2>&1; then
         elif [ -f "$HOME/.cache/oh-my-posh/themes/paradox.omp.json" ]; then
             eval "$(oh-my-posh init bash --config "$HOME/.cache/oh-my-posh/themes/paradox.omp.json")"
         else
-            # Utiliser le thème par défaut
             eval "$(oh-my-posh init bash)"
         fi
     fi
@@ -704,7 +900,7 @@ fi
 
 EOF
 
-    print_success "Configuration .bashrc complète créée"
+    print_success "Configuration Beautiful Shell complète créée"
 }
 
 set_default_terminal() {
@@ -804,7 +1000,7 @@ run_diagnostics() {
 
 main() {
     print_header
-    log "Début installation Terminal Dev Setup"
+    log "Début installation Beautiful Shell"
     
     # Vérifications préalables
     check_sudo
@@ -839,7 +1035,7 @@ main() {
     # Tests de validation
     if run_diagnostics; then
         print_header
-        echo -e "${GREEN}${BOLD}🎉 INSTALLATION TERMINÉE AVEC SUCCÈS ! 🎉${NC}"
+        echo -e "${GREEN}${BOLD}🎉 BEAUTIFUL SHELL INSTALLÉ AVEC SUCCÈS ! 🎉${NC}"
         echo ""
         echo -e "${WHITE}${BOLD}PROCHAINES ÉTAPES :${NC}"
         echo -e "${CYAN}▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔${NC}"
@@ -850,31 +1046,25 @@ main() {
         echo -e "  ${YELLOW}2.${NC} ${BOLD}Lancez Kitty Terminal :${NC}"
         echo -e "     ${DIM}kitty${NC}"
         echo ""
-        echo -e "  ${YELLOW}3.${NC} ${BOLD}Testez Oh My Posh :${NC}"
-        echo -e "     ${DIM}oh-my-posh --version${NC}"
-        echo ""
-        echo -e "  ${YELLOW}4.${NC} ${BOLD}Explorez les thèmes :${NC}"
+        echo -e "  ${YELLOW}3.${NC} ${BOLD}Explorez les thèmes :${NC}"
         echo -e "     ${DIM}omp-list${NC}"
-        echo -e "     ${DIM}omp-theme atomic${NC}"
-        echo -e "     ${DIM}omp-save atomic${NC}"
+        echo -e "     ${DIM}omp-theme dracula${NC}"
+        echo -e "     ${DIM}omp-save dracula${NC}"
         echo ""
-        echo -e "  ${YELLOW}5.${NC} ${BOLD}Aide et astuces :${NC}"
+        echo -e "  ${YELLOW}4.${NC} ${BOLD}Aide et astuces :${NC}"
         echo -e "     ${DIM}aide${NC}"
         echo ""
         echo -e "${WHITE}${BOLD}COMMANDES UTILES :${NC}"
         echo -e "${CYAN}▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔${NC}"
-        echo -e "  • ${GREEN}omp-theme [nom]${NC}     Changer de thème"
-        echo -e "  • ${GREEN}omp-save [nom]${NC}      Sauvegarder un thème"
-        echo -e "  • ${GREEN}omp-reset${NC}           Réinitialiser Oh My Posh"
-        echo -e "  • ${GREEN}omp-list${NC}            Lister tous les thèmes"
-        echo -e "  • ${GREEN}gs${NC}                  Git status rapide"
-        echo -e "  • ${GREEN}proj${NC}                Aller dans vos projets"
-        echo -e "  • ${GREEN}aide${NC}                Afficher l'aide complète"
+        echo -e "  • ${GREEN}beautiful-help${NC}          Aide complète"
+        echo -e "  • ${GREEN}beautiful-themes${NC}        Gestionnaire de thèmes"
+        echo -e "  • ${GREEN}beautiful-remove${NC}        Désinstaller Beautiful Shell"
+        echo -e "  • ${GREEN}beautiful-backup${NC}        Voir les sauvegardes"
         echo ""
         
         # Test immédiat si on est dans Kitty
         if [ "$TERM" = "xterm-kitty" ]; then
-            echo -e "${PURPLE}${BOLD}🚀 Vous utilisez déjà Kitty ! Configuration appliquée immédiatement.${NC}"
+            echo -e "${PURPLE}${BOLD}🚀 Vous utilisez déjà Kitty ! Configuration appliquée.${NC}"
             echo ""
             
             # Appliquer Oh My Posh pour cette session
@@ -884,7 +1074,7 @@ main() {
                 echo -e "${GREEN}✓ Oh My Posh activé avec le thème aliens${NC}"
             elif command -v oh-my-posh >/dev/null 2>&1; then
                 eval "$(oh-my-posh init bash)"
-                echo -e "${GREEN}✓ Oh My Posh activé avec le thème par défaut${NC}"
+                echo -e "${GREEN}✓ Oh My Posh activé${NC}"
             fi
         fi
         
@@ -895,10 +1085,8 @@ main() {
         echo -e "${WHITE}${BOLD}ACTIONS RECOMMANDÉES :${NC}"
         echo ""
         echo -e "  ${CYAN}1.${NC} Vérifiez les erreurs ci-dessus"
-        echo -e "  ${CYAN}2.${NC} Relancez le script si nécessaire :"
-        echo -e "     ${DIM}./$(basename "$0")${NC}"
-        echo -e "  ${CYAN}3.${NC} Consultez les logs :"
-        echo -e "     ${DIM}cat setup.log${NC}"
+        echo -e "  ${CYAN}2.${NC} Relancez le script si nécessaire"
+        echo -e "  ${CYAN}3.${NC} Consultez les logs : ${DIM}cat beautiful-shell.log${NC}"
         echo ""
         echo -e "${PURPLE}${BOLD}DÉPANNAGE RAPIDE :${NC}"
         echo ""
@@ -906,17 +1094,13 @@ main() {
         echo -e "     ${DIM}source ~/.bashrc${NC}"
         echo -e "     ${DIM}omp-reset${NC}"
         echo ""
-        echo -e "  ${WHITE}Si Kitty n'est pas installé :${NC}"
-        echo -e "     ${DIM}sudo apt install kitty  # Ubuntu/Debian${NC}"
-        echo -e "     ${DIM}sudo dnf install kitty  # Fedora${NC}"
-        echo ""
     fi
     
-    echo -e "${DIM}${GRAY}Logs d'installation sauvegardés dans : $LOG_FILE${NC}"
-    echo -e "${DIM}${GRAY}Sauvegarde .bashrc : ~/.bashrc.backup.*${NC}"
+    echo -e "${DIM}${GRAY}Logs : $LOG_FILE${NC}"
+    echo -e "${DIM}${GRAY}Sauvegardes : ~/.bashrc.backup.*${NC}"
     echo ""
     
-    log "Installation terminée"
+    log "Installation Beautiful Shell terminée"
 }
 
 # =============================================================================
@@ -938,6 +1122,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 else
     print_error "Ce script doit être exécuté, pas sourcé"
-    print_info "Usage: ./$(basename "${BASH_SOURCE[0]}")"
+    print_info "Usage: ./beautiful-shell"
     exit 1
 fi
