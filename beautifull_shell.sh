@@ -766,22 +766,25 @@ omp-save() {
     sed -i '/# Initialisation Oh My Posh/,/^fi$/d' ~/.bashrc
     
     # Ajouter la nouvelle configuration avec le thème sauvegardé en premier
-    cat >> ~/.bashrc << EOF
+    cat >> ~/.bashrc << 'ENDOFCONFIG'
 
 # Initialisation Oh My Posh avec thème sauvegardé
-if [[ \$- == *i* ]] && command -v oh-my-posh >/dev/null 2>&1; then
+if [[ $- == *i* ]] && command -v oh-my-posh >/dev/null 2>&1; then
     if oh-my-posh --version >/dev/null 2>&1; then
-        if [ -f "\$HOME/.cache/oh-my-posh/themes/$theme_name.omp.json" ]; then
-            eval "\$(oh-my-posh init bash --config "\$HOME/.cache/oh-my-posh/themes/$theme_name.omp.json")"
-        elif [ -f "\$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
-            eval "\$(oh-my-posh init bash --config "\$HOME/.cache/oh-my-posh/themes/aliens.omp.json")"
+        if [ -f "$HOME/.cache/oh-my-posh/themes/THEME_NAME.omp.json" ]; then
+            eval "$(oh-my-posh init bash --config "$HOME/.cache/oh-my-posh/themes/THEME_NAME.omp.json")"
+        elif [ -f "$HOME/.cache/oh-my-posh/themes/aliens.omp.json" ]; then
+            eval "$(oh-my-posh init bash --config "$HOME/.cache/oh-my-posh/themes/aliens.omp.json")"
         else
-            eval "\$(oh-my-posh init bash)"
+            eval "$(oh-my-posh init bash)"
         fi
     fi
 fi
 
-EOF
+ENDOFCONFIG
+
+    # Remplacer THEME_NAME par le vrai nom du thème
+    sed -i "s/THEME_NAME/$theme_name/g" ~/.bashrc
 
     echo -e "${GREEN}✓ Thème '$theme_name' sauvegardé comme thème par défaut${NC}"
     echo -e "${CYAN}Le thème sera appliqué dans les nouvelles sessions${NC}"
