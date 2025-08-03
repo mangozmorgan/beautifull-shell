@@ -641,7 +641,10 @@ beautiful-remove() {
     echo -e "  • Polices JetBrains Mono Nerd Font (optionnel)"
     echo -e "  • Aliases et fonctions personnalisées"
     echo ""
-    echo -e "${CYAN}Le .bashrc sera restauré depuis la sauvegarde la plus récente${NC}"
+    echo -e "${CYAN}Options de désinstallation :${NC}"
+    echo -e "  • Kitty peut être désinstallé (optionnel)"
+    echo -e "  • Le terminal par défaut sera restauré"
+    echo -e "  • Le .bashrc sera restauré depuis la sauvegarde"
     echo ""
     
     read -p "Tapez 'CONFIRMER' pour continuer : " confirmation
@@ -680,8 +683,105 @@ beautiful-remove() {
     fi
     rm -f "$HOME/.config/kitty/startup.sh" 2>/dev/null && echo -e "   ✓ Script de démarrage supprimé"
     
-    # 4. Polices (optionnel)
-    echo -e "${YELLOW}4. Polices JetBrains Mono...${NC}"
+    # 4. Restaurer le terminal par défaut
+    echo -e "${YELLOW}4. Restauration du terminal par défaut...${NC}"
+    
+    # Détecter le terminal par défaut du système
+    if command -v gnome-terminal >/dev/null 2>&1; then
+        DEFAULT_TERMINAL="gnome-terminal"
+    elif command -v konsole >/dev/null 2>&1; then
+        DEFAULT_TERMINAL="konsole"
+    elif command -v xfce4-terminal >/dev/null 2>&1; then
+        DEFAULT_TERMINAL="xfce4-terminal"
+    elif command -v mate-terminal >/dev/null 2>&1; then
+        DEFAULT_TERMINAL="mate-terminal"
+    elif command -v lxterminal >/dev/null 2>&1; then
+        DEFAULT_TERMINAL="lxterminal"
+    elif command -v terminator >/dev/null 2>&1; then
+        DEFAULT_TERMINAL="terminator"
+    elif command -v alacritty >/dev/null 2>&1; then
+        DEFAULT_TERMINAL="alacritty"
+    else
+        DEFAULT_TERMINAL="xterm"
+    fi
+    
+    # Restaurer le terminal par défaut avec update-alternatives
+    if command -v update-alternatives >/dev/null 2>&1; then
+        DEFAULT_TERMINAL_PATH=$(which $DEFAULT_TERMINAL 2>/dev/null)
+        if [ -n "$DEFAULT_TERMINAL_PATH" ] && [ -x "$DEFAULT_TERMINAL_PATH" ]; then
+            sudo update-alternatives --install /usr/bin/x-terminal-emulator x-terminal-emulator "$DEFAULT_TERMINAL_PATH" 50 2>/dev/null
+            sudo update-alternatives --set x-terminal-emulator "$DEFAULT_TERMINAL_PATH" 2>/dev/null
+            echo -e "   ✓ Terminal par défaut restauré : $DEFAULT_TERMINAL"
+        else
+            echo -e "   ${YELLOW}⚠ Impossible de restaurer le terminal par défaut automatiquement${NC}"
+        fi
+    else
+        echo -e "   ${YELLOW}⚠ update-alternatives non disponible${NC}"
+    fi
+    
+    # Restaurer les raccourcis clavier pour les environnements de bureau courants
+    echo -e "${YELLOW}5. Restauration des raccourcis clavier...${NC}"
+    
+    # GNOME
+    if command -v gsettings >/dev/null 2>&1 && [ "$XDG_CURRENT_DESKTOP" = "GNOME" ] || [ "$XDG_CURRENT_DESKTOP" = "ubuntu:GNOME" ]; then
+        gsettings set org.gnome.settings-daemon.plugins.media-keys terminal "['<Super>t']" 2>/dev/null
+        gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ name "Terminal" 2>/dev/null
+        gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ command "$DEFAULT_TERMINAL" 2>/dev/null
+        gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ binding "<Super>t" 2>/dev/null
+        echo -e "   ✓ Raccourci Super+T restauré pour GNOME"
+    fi
+    
+    # KDE Plasma
+    if command -v kwriteconfig5 >/dev/null 2>&1 && [ "$XDG_CURRENT_DESKTOP" = "KDE" ]; then
+        kwriteconfig5 --file kglobalshortcutsrc --group "org.kde.konsole.desktop" --key "_launch" "Ctrl+Alt+T,none,Konsole"
+        echo -e "   ✓ Raccourci restauré pour KDE"
+    fi
+    
+    # XFCE
+    if command -v xfconf-query >/dev/null 2>&1 && [ "$XDG_CURRENT_DESKTOP" = "XFCE" ]; then
+        xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super>t" -s "$DEFAULT_TERMINAL" 2>/dev/null
+        echo -e "   ✓ Raccourci Super+T restauré pour XFCE"
+    fi
+    
+    # 6. Désinstaller Kitty (optionnel)
+    echo -e "${YELLOW}6. Désinstallation de Kitty...${NC}"
+    read -p "Désinstaller Kitty Terminal ? (y/N) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        # Détecter la distribution pour la désinstallation
+        if [ -f /etc/os-release ]; then
+            . /etc/os-release
+            case $ID in
+                ubuntu|debian|pop|mint|elementary|zorin|neon)
+                    sudo apt remove -y kitty 2>/dev/null
+                    ;;
+                fedora|centos|rhel|rocky|almalinux)
+                    sudo dnf remove -y kitty 2>/dev/null
+                    ;;
+                arch|manjaro|endeavouros|arcolinux)
+                    sudo pacman -Rs --noconfirm kitty 2>/dev/null
+                    ;;
+                opensuse*|sles)
+                    sudo zypper remove -y kitty 2>/dev/null
+                    ;;
+                void)
+                    sudo xbps-remove -y kitty 2>/dev/null
+                    ;;
+                alpine)
+                    sudo apk del kitty 2>/dev/null
+                    ;;
+                *)
+                    echo -e "   ${YELLOW}Désinstallation manuelle requise pour cette distribution${NC}"
+                    ;;
+            esac
+            echo -e "   ✓ Kitty désinstallé"
+        fi
+    else
+        echo -e "   ✓ Kitty conservé"
+    fi
+    
+    # 7. Polices (optionnel)
+    echo -e "${YELLOW}7. Polices JetBrains Mono...${NC}"
     read -p "Supprimer les polices ? (y/N) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -692,12 +792,22 @@ beautiful-remove() {
         echo -e "   ✓ Polices conservées"
     fi
     
-    # 5. Variables d'environnement
+    # 8. Variables d'environnement
     unset POSH_THEME POSH_SESSION_ID POSH_SHELL_VERSION POSH_PID STARTUP_DONE
     
     echo ""
     echo -e "${GREEN}${BOLD}✅ DÉSINSTALLATION TERMINÉE${NC}"
-    echo -e "${CYAN}Redémarrez votre session ou tapez : source ~/.bashrc${NC}"
+    echo ""
+    echo -e "${WHITE}${BOLD}RÉSUMÉ :${NC}"
+    echo -e "  ✓ Beautiful Shell complètement supprimé"
+    echo -e "  ✓ Terminal par défaut restauré : ${GREEN}$DEFAULT_TERMINAL${NC}"
+    echo -e "  ✓ Raccourci Super+T restauré"
+    echo -e "  ✓ Configuration .bashrc restaurée"
+    echo ""
+    echo -e "${CYAN}Actions recommandées :${NC}"
+    echo -e "  • Redémarrez votre session ou tapez : ${YELLOW}source ~/.bashrc${NC}"
+    echo -e "  • Testez le raccourci : ${YELLOW}Super+T${NC}"
+    echo -e "  • Le terminal par défaut est maintenant : ${YELLOW}$DEFAULT_TERMINAL${NC}"
     echo ""
 }
 
